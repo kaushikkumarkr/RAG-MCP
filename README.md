@@ -136,6 +136,51 @@ graph TB
 
 ---
 
+## 🛡️ Citations & Grounding
+
+Nexus is designed to rely strictly on retrieved facts, eliminating "hallucinations" by providing **precise citations** for every claim.
+
+### How it works
+Every `search_knowledge` result includes:
+1.  **Source Path**: The exact file path (`/docs/api.md`).
+2.  **Relevance Score**: A 0-1 confidence score from the Cross-Encoder.
+3.  **Direct Quote**: The specific text chunk used.
+
+**Example Response:**
+> "According to **[api_guide.md]** (Score: 0.98), the authentication requires a Bearer token..."
+
+---
+
+## 📊 Evaluation & Metrics (RAGAS)
+
+Nexus includes a built-in evaluation harness using **RAGAS** (Retrieval Augmented Generation Assessment) to ensure retrieval quality.
+
+| Metric | Purpose |
+|--------|---------|
+| **Context Precision** | proportion of relevant chunks in retrieved top-k |
+| **Context Recall** | ability to retrieve all necessary information |
+| **Relevance Score** | Cross-encoder semantic similarity (calculated in real-time) |
+
+### Running Benchmarks
+To run the evaluation suite against your knowledge base:
+
+```bash
+# Set your OpenAI key for the "Judge" LLM (optional)
+export OPENAI_API_KEY="sk-..."
+
+# Run the evaluation script
+python scripts/evaluate.py
+```
+
+*Output:*
+```text
+📊 Starting Nexus RAG Evaluation...
+📈 Mean Top-1 Relevance Score: 0.9245
+🏆 Context Precision: 0.88
+```
+
+---
+
 ## 📦 Installation
 
 ### Prerequisites

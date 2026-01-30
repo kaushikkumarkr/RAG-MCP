@@ -54,52 +54,76 @@ It solves the "amnesia" problem of LLMs by allowing them to:
 Nexus uses a dual-layer architecture separating **Document Retrieval (RAG)** from **Cognitive Memory**.
 
 ```mermaid
-graph TD
-    %% Clients
-    Client([🤖 Claude / Cursor / AI Agent])
-    
-    %% Main Connection
-    Client <==>|MCP Protocol| NexusAPI[🔌 Nexus MCP Server]
-    
-    subgraph "Nexus Core System"
-        direction TB
-        
-        %% Component: RAG Engine
-        subgraph "🔍 RAG Engine"
-            direction TB
-            Ingest[⚡ Ingestion Pipeline]
-            Search[🔎 Hybrid Search]
-            Rerank[⚖️ Cross-Encoder Reranker]
-            
-            Embed[🧠 Embedder Model]
-            
-            Ingest --> Embed
-            Embed --> VectorDB[(Qdrant Vector DB)]
-            Ingest --> MetaDB[(SQLite Metadata)]
-            
-            Search -->|Semantic| VectorDB
-            Search -->|Keyword| MetaDB
-            Search --> Rerank
-        end
-        
-        %% Component: Memory Layer
-        subgraph "🧠 Memory Layer"
-            direction TB
-            MemStore[📝 Memory Store]
-            MemIndex[📇 Fast Index]
-            ContextObj[📦 Project Context]
-            
-            MemStore <--> MemIndex
-            MemStore -->|Persist| LocalDisk[(Common Filesystem)]
-        end
-        
-        %% Connections
-        NexusAPI -->|search_knowledge| Search
-        NexusAPI -->|remember / recall| MemStore
-        NexusAPI -->|add_note| Ingest
-        
-        Watcher[👀 File Watcher] -.->|Auto-Update| Ingest
+graph TB
+    %% --- Styles ---
+    classDef client fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef orchestration fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,stroke-dasharray: 5 5;
+    classDef nexus fill:#fff3e0,stroke:#ef6c00,stroke-width:4px;
+    classDef memory fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef rag fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef storage fill:#eceff1,stroke:#455a64,stroke-width:2px;
+
+    %% --- External World ---
+    Client([🤖 AI Assistant<br/>Claude / Cursor / IDE]) ::: client
+
+    subgraph Orchestration ["🌐 Orchestration Layer"]
+        Github[GitHub MCP] ::: orchestration
+        Notion[Notion MCP] ::: orchestration
+        Other[Other MCPs] ::: orchestration
     end
+
+    %% --- Nexus Core ---
+    subgraph Nexus ["🔥 Nexus Server (Core)"]
+        API[🔌 MCP Interface Protocol] ::: nexus
+
+        subgraph Cognitive ["🧠 Cognitive Engine"]
+            MemManager[Memory Manager] ::: memory
+            Context[Project Context] ::: memory
+            Preferences[User Preferences] ::: memory
+            MemManager --> Context
+            MemManager --> Preferences
+        end
+
+        subgraph Retrieval ["🔍 Retrieval Engine"]
+            Hybrid[Hybrid Search<br/>(Dense + Sparse)] ::: rag
+            Reranker[Cross-Encoder<br/>Reranker] ::: rag
+            Hybrid --> Reranker
+        end
+        
+        subgraph DataOps ["⚡ Data Operations"]
+            Ingest[Ingestion Pipeline] ::: rag
+            Watcher[File Watcher] ::: rag
+        end
+    end
+
+    %% --- Storage Layer ---
+    subgraph Storage ["💾 Local Storage"]
+        VectorDB[(Qdrant<br/>Vectors)] ::: storage
+        SQL[(SQLite<br/>Metadata)] ::: storage
+        FS[(File System<br/>/memories)] ::: storage
+    end
+
+    %% --- Connections ---
+    Client <==>| JSON-RPC | API
+    Client -.->|Fetch Data| Orchestration
+    Orchestration -->|ingest_content| API
+
+    %% Internal Flows
+    API -->|search_knowledge| Hybrid
+    API -->|remember / recall| MemManager
+    API -->|add_note| Ingest
+
+    %% Data Flows
+    Ingest -->|Embed| VectorDB
+    Ingest -->|Meta| SQL
+    MemManager -->|Persist| FS
+    Hybrid -->|Query| VectorDB
+    Hybrid -->|Filter| SQL
+    Watcher -.->|Change Event| Ingest
+
+    %% Context Flow
+    Reranker -->|Top-K Results| API
+    MemManager -->|Contextual Memories| API
 ```
 
 ---

@@ -1,0 +1,82 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nexus-knowledge"
+version = "0.1.0"
+description = "Personal Knowledge MCP Server with RAG capabilities"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "Kaushik" }
+]
+keywords = ["mcp", "rag", "knowledge", "ai", "retrieval"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "mcp>=1.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "sentence-transformers>=2.2.0",
+    "qdrant-client>=1.7.0",
+    "rank-bm25>=0.2.2",
+    "httpx>=0.25.0",
+    "pyyaml>=6.0",
+    "loguru>=0.7.0",
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "ragas>=0.1.0",
+    "watchdog>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+pdf = [
+    "unstructured>=0.10.0",
+]
+
+[project.scripts]
+nexus = "nexus.cli.main:app"
+
+[project.urls]
+Homepage = "https://github.com/krkaushikkumar/nexus"
+Documentation = "https://github.com/krkaushikkumar/nexus#readme"
+Repository = "https://github.com/krkaushikkumar/nexus"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nexus"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true

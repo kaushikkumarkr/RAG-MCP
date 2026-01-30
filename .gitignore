@@ -1,0 +1,35 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Environment Variables
+.env
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
+
+# Nexus Data
+test_data_dir/
+test_full_system/
+*.db
+ingested/
+memories/
+notes/
+
+# Qdrant
+qdrant/
+nexus_knowledge/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/

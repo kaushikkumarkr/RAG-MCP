@@ -38,7 +38,14 @@ It solves the "amnesia" problem of LLMs by allowing them to:
 *   **Project Context**: Stores architecture decisions, tech stacks, and TODOs for your projects.
 *   **User Preferences**: Remembers your coding style (e.g., "User prefers Pytest over Unittest").
 *   **Fact Store**: Persistent storage for important details that shouldn't be lost.
-*   **Orchestration**: Can ingest data from **other MCP servers** (GitHub, Notion) to centralize knowledge.
+*   **Fact Store**: Persistent storage for important details that shouldn't be lost.
+
+### 🌐 Multi-MCP Orchestration
+**This is the "Killer Feature".** Since Nexus is an MCP server, it can work alongside **GitHub MCP**, **Notion MCP**, **Slack MCP**, etc. in your client (Claude/Cursor).
+
+*   **Ingest Anything**: Ask Claude to "Read the README from the GitHub MCP and save it to Nexus".
+*   **Centralized Knowledge**: Pull docs from Notion, code from GitHub, and chats from Slack into ONE searchable brain.
+*   **Client-Side Integration**: No need for Nexus to have API keys—it relies on your Client to fetch data and feed it to Nexus.
 
 ---
 

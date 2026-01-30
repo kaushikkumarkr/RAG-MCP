@@ -65,7 +65,7 @@ graph TB
 
     %% --- External World ---
     %% --- External World ---
-    Client([🤖 AI Assistant<br/>Claude / Cursor / IDE])
+    Client(["🤖 AI Assistant<br/>Claude / Cursor / IDE"])
     class Client client
 
     subgraph Orchestration ["🌐 Orchestration Layer"]
@@ -90,8 +90,8 @@ graph TB
         end
 
         subgraph Retrieval ["🔍 Retrieval Engine"]
-            Hybrid[Hybrid Search<br/>(Dense + Sparse)]
-            Reranker[Cross-Encoder<br/>Reranker]
+            Hybrid["Hybrid Search<br/>(Dense + Sparse)"]
+            Reranker["Cross-Encoder<br/>Reranker"]
             class Hybrid,Reranker rag
             Hybrid --> Reranker
         end
@@ -105,9 +105,9 @@ graph TB
 
     %% --- Storage Layer ---
     subgraph Storage ["💾 Local Storage"]
-        VectorDB[(Qdrant<br/>Vectors)]
-        SQL[(SQLite<br/>Metadata)]
-        FS[(File System<br/>/memories)]
+        VectorDB[("Qdrant<br/>Vectors")]
+        SQL[("SQLite<br/>Metadata")]
+        FS[("File System<br/>/memories")]
         class VectorDB,SQL,FS storage
     end
 

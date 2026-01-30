@@ -64,43 +64,51 @@ graph TB
     classDef storage fill:#eceff1,stroke:#455a64,stroke-width:2px;
 
     %% --- External World ---
-    Client([🤖 AI Assistant<br/>Claude / Cursor / IDE]) ::: client
+    %% --- External World ---
+    Client([🤖 AI Assistant<br/>Claude / Cursor / IDE])
+    class Client client
 
     subgraph Orchestration ["🌐 Orchestration Layer"]
-        Github[GitHub MCP] ::: orchestration
-        Notion[Notion MCP] ::: orchestration
-        Other[Other MCPs] ::: orchestration
+        Github[GitHub MCP]
+        Notion[Notion MCP]
+        Other[Other MCPs]
     end
+    class Github,Notion,Other orchestration
 
     %% --- Nexus Core ---
     subgraph Nexus ["🔥 Nexus Server (Core)"]
-        API[🔌 MCP Interface Protocol] ::: nexus
+        API[🔌 MCP Interface Protocol]
+        class API nexus
 
         subgraph Cognitive ["🧠 Cognitive Engine"]
-            MemManager[Memory Manager] ::: memory
-            Context[Project Context] ::: memory
-            Preferences[User Preferences] ::: memory
+            MemManager[Memory Manager]
+            Context[Project Context]
+            Preferences[User Preferences]
+            class MemManager,Context,Preferences memory
             MemManager --> Context
             MemManager --> Preferences
         end
 
         subgraph Retrieval ["🔍 Retrieval Engine"]
-            Hybrid[Hybrid Search<br/>(Dense + Sparse)] ::: rag
-            Reranker[Cross-Encoder<br/>Reranker] ::: rag
+            Hybrid[Hybrid Search<br/>(Dense + Sparse)]
+            Reranker[Cross-Encoder<br/>Reranker]
+            class Hybrid,Reranker rag
             Hybrid --> Reranker
         end
         
         subgraph DataOps ["⚡ Data Operations"]
-            Ingest[Ingestion Pipeline] ::: rag
-            Watcher[File Watcher] ::: rag
+            Ingest[Ingestion Pipeline]
+            Watcher[File Watcher]
+            class Ingest,Watcher rag
         end
     end
 
     %% --- Storage Layer ---
     subgraph Storage ["💾 Local Storage"]
-        VectorDB[(Qdrant<br/>Vectors)] ::: storage
-        SQL[(SQLite<br/>Metadata)] ::: storage
-        FS[(File System<br/>/memories)] ::: storage
+        VectorDB[(Qdrant<br/>Vectors)]
+        SQL[(SQLite<br/>Metadata)]
+        FS[(File System<br/>/memories)]
+        class VectorDB,SQL,FS storage
     end
 
     %% --- Connections ---

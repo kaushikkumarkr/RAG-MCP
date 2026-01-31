@@ -140,114 +140,100 @@ Nexus uses a **Dual-Layer Cognitive Architecture** that separates fast retrieval
 ```mermaid
 graph TB
     %% ==========================================
-    %% 🎨 Styles & Theme
+    %% 🎨 Styles
     %% ==========================================
-    classDef client fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,rx:10,ry:10,color:#0d47a1
-    classDef protocol fill:#fff8e1,stroke:#ff8f00,stroke-width:2px,stroke-dasharray: 5 5,color:#ff6f00
-    classDef core fill:#fff3e0,stroke:#e65100,stroke-width:4px,color:#bf360c
+    classDef client fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1
+    classDef core fill:#fff3e0,stroke:#e65100,stroke-width:3px,color:#bf360c
     classDef engine fill:#ffffff,stroke:#e65100,stroke-width:2px,color:#e65100
-    classDef storage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,rx:5,ry:5,color:#4a148c
+    classDef storage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#4a148c
     classDef external fill:#f1f8e9,stroke:#33691e,stroke-width:2px,stroke-dasharray: 5 5,color:#33691e
 
     %% ==========================================
-    %% 🖥️ Layer 1: Client Ecosystem
+    %%  Layer 1: User & Clients
     %% ==========================================
-    subgraph Clients ["🖥️ Client Integration Layer"]
-        direction LR
+    subgraph ClientLayer ["🖥️ Client Environment"]
+        direction TB
         Claude(["🤖 Claude Desktop"]) ::: client
         Cursor(["⚡ Cursor / IDE"]) ::: client
-        Terminal(["💻 CLI Terminal"]) ::: client
     end
 
     %% ==========================================
-    %% 🔌 Layer 2: Protocol & Orchestration
+    %%  Layer 2: Nexus Core
     %% ==========================================
-    JSONRPC(("&nbsp;sockets/stdio&nbsp;<br/>JSON-RPC 2.0")) ::: protocol
-
-    subgraph Orchestration ["🌐 Multi-MCP Orchestration"]
+    subgraph Nexus ["🔥 NEXUS SERVER"]
         direction TB
-        Github(["GitHub MCP"]) ::: external
-        Notion(["Notion MCP"]) ::: external
-        Slack(["Slack MCP"]) ::: external
-    end
+        
+        Router{"🚦 MCP ROUTER"} ::: core
 
-    %% ==========================================
-    %% 🔥 Layer 3: Nexus Core System
-    %% ==========================================
-    subgraph Nexus ["🔥 NEXUS SERVER (Local Process)"]
-        direction TB
-
-        Router{"🚦 Tool Router"} ::: core
-
-        %% --- Sub-System: Cognitive Memory ---
-        subgraph MemorySys ["🧠 Cognitive Engine"]
-            direction TB
-            MemStore["📝 Memory Store"] ::: engine
-            ContextMgr["🏗️ Context Manager"] ::: engine
-            UserPrefs["👤 Preference Engine"] ::: engine
+        subgraph Memory ["🧠 Memory Engine"]
+            MemStore["📝 Fact Store"] ::: engine
+            Context["🏗️ Context Manager"] ::: engine
+            Preferences["👤 User Prefs"] ::: engine
         end
 
-        %% --- Sub-System: Retrieval (RAG) ---
-        subgraph RAGSys ["🔍 RAG & Search Engine"]
-            direction TB
-            Hybrid["🔎 Hybrid Search<br/>(Dense + Sparse)"] ::: engine
-            Rerank["⚖️ Cross-Encoder<br/>Reranker"] ::: engine
-            QueryExp["✨ Query Expansion"] ::: engine
-            
-            Hybrid --> Rerank
+        subgraph RAG ["🔍 RAG Engine"]
+            Hybrid["🔎 Hybrid Search"] ::: engine
+            Rerank["⚖️ Cross-Encoder"] ::: engine
         end
 
-        %% --- Sub-System: Data Operations ---
-        subgraph DataOps ["⚡ Data Operations Pipeline"]
-            direction TB
-            Watcher["👀 File Watcher<br/>(Watchdog)"] ::: engine
+        subgraph Ingest ["⚡ Data Pipeline"]
+            Watcher["👀 File Watcher"] ::: engine
             Chunker["✂️ Semantic Chunker"] ::: engine
-            Embedder["🧠 Local Embedder<br/>(FastEmbed/SentenceTransformers)"] ::: engine
-            
-            Watcher --> Chunker --> Embedder
+            Embedder["🧠 Local Embedder"] ::: engine
         end
     end
 
     %% ==========================================
-    %% 💾 Layer 4: Persistence Layer
+    %%  Layer 3: Storage
     %% ==========================================
-    subgraph Storage ["💾 Local Persistence (~/.nexus)"]
-        direction LR
-        VectorDB[("🧱 Qdrant<br/>(Vector Store)")] ::: storage
-        SQLite[("🗃️ SQLite<br/>(Metadata & Logs)")] ::: storage
-        Config["⚙️ YAML Config"] ::: storage
+    subgraph StorageLayer ["💾 Persistence (~/.nexus)"]
+        direction TB
+        VectorDB[("🧱 Qdrant (Vectors)")] ::: storage
+        SQLite[("🗃️ SQLite (Metadata)")] ::: storage
     end
 
     %% ==========================================
-    %% 🔗 Connections & Data Flow
+    %%  Layer 4: External
+    %% ==========================================
+    subgraph External ["🌐 External MCPs"]
+        Github["GitHub MCP"] ::: external
+        Notion["Notion MCP"] ::: external
+    end
+
+    %% ==========================================
+    %%  FLOWS & MAPPINGS (The "Everything")
     %% ==========================================
     
-    %% Client -> Nexus
-    Clients <==> JSONRPC <==> Router
+    %% 1. Connection
+    Claude <==> Router
+    Cursor <==> Router
 
-    %% External MCP -> Nexus (Content Injection)
-    Orchestration -.->|"ingest_content"| Router
+    %% 2. Tool Routing (The "Everything")
+    Router -- "remember / recall / forget" --> MemStore
+    Router -- "get_project_context" --> Context
+    Router -- "get_user_preferences" --> Preferences
+    
+    Router -- "search_knowledge / list_sources" --> Hybrid
+    Router -- "get_stats" --> SQLite
+    
+    Router -- "add_note / ingest_content" --> Embedder
+    
+    %% 3. Internal Logistics
+    Hybrid --> Rerank
+    Watcher --> Chunker --> Embedder
 
-    %% Router Dispatch
-    Router -->|"remember / recall"| MemorySys
-    Router -->|"search_knowledge"| RAGSys
-    Router -->|"add_note / ingest"| DataOps
-
-    %% Memory Persistence
+    %% 4. Persistence
     MemStore <--> SQLite
-    ContextMgr <--> SQLite
-    UserPrefs <--> SQLite
+    Context <--> SQLite
+    Preferences <--> SQLite
+    
+    Hybrid <--> VectorDB
+    Embedder --> VectorDB
+    Embedder --> SQLite
 
-    %% RAG Flow
-    RAGSys -->|"Vector Search"| VectorDB
-    RAGSys -->|"Metadata Filter"| SQLite
-
-    %% Ingestion Flow
-    Embedder -->|"Upsert Vectors"| VectorDB
-    Embedder -->|"Store Metadata"| SQLite
-
-    %% Feedback Loop
-    Rerank -->|"Top-K Results"| Router
+    %% 5. Orchestration (Content Injection)
+    Github -.-> Router
+    Notion -.-> Router
 ```
 
 **Built with:** Python 3.11 • Qdrant • Sentence-Transformers • RAGAS

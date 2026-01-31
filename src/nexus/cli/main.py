@@ -194,13 +194,25 @@ def serve(
 
     config_path = Path("~/.nexus/config.yaml").expanduser()
     if not config_path.exists():
-        console.print("[red]Nexus not initialized. Run 'nexus init' first.[/red]")
-        raise typer.Exit(1)
-
-    config = load_config(config_path)
+        # Auto-initialize if running for the first time
+        stderr_console = Console(stderr=True)
+        stderr_console.print("[yellow]First run detected. Initializing Nexus defaults (~/.nexus)...[/yellow]")
+        from nexus.config import create_default_config, save_config
+        
+        config = create_default_config()
+        save_config(config, config_path)
+        
+        # Create directories
+        config.storage.qdrant_path.mkdir(parents=True, exist_ok=True)
+        config.storage.metadata_db.parent.mkdir(parents=True, exist_ok=True)
+        config.notes_dir.mkdir(parents=True, exist_ok=True)
+        stderr_console.print("[green]✓ Initialization complete.[/green]")
+    else:
+        config = load_config(config_path)
 
     if stdio:
-        console.print("[cyan]Starting Nexus MCP server (stdio)...[/cyan]", err=True)
+        stderr_console = Console(stderr=True)
+        stderr_console.print("[cyan]Starting Nexus MCP server (stdio)...[/cyan]")
         import asyncio
         server = NexusServer(config=config)
         try:

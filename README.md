@@ -26,7 +26,9 @@ It runs on your local machine, indexes your files, and allows your AI to:
 
 ---
 
-## ⚙️ Configuration
+## ⚙️ Configuration (Zero-Setup)
+
+You don't need to manually install Nexus. Just use `uvx` to run it directly from the repository.
 
 ### 1. Claude Desktop App
 To use Nexus with Claude, add the following to your config file:
@@ -37,18 +39,26 @@ To use Nexus with Claude, add the following to your config file:
 {
   "mcpServers": {
     "nexus": {
-      "command": "/absolute/path/to/RAG-MCP/venv/bin/nexus",
-      "args": ["serve"]
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/kaushikkumarkr/RAG-MCP",
+        "nexus",
+        "serve"
+      ]
     }
   }
 }
 ```
 
+> **Note**: This requires [uv](https://docs.astral.sh/uv/) to be installed.
+> Nexus will automatically initialize its database at `~/.nexus` on the first run.
+
 ### 2. Cursor / Windsurf / Other IDEs
 Go to **Settings > Features > MCP** and add a new server:
 - **Name**: `nexus`
 - **Type**: `stdio`
-- **Command**: `uv run nexus serve` (or path to python executable)
+- **Command**: `uvx --from git+https://github.com/kaushikkumarkr/RAG-MCP nexus serve`
 
 ---
 

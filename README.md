@@ -133,7 +133,9 @@ Nexus logs to stderr. In Claude Desktop, you can open the **Developer Console** 
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
+
+Nexus uses a **Dual-Layer Cognitive Architecture** that separates fast retrieval from deep understanding.
 
 ```mermaid
 graph TD

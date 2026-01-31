@@ -9,230 +9,29 @@
 
 **The "Second Brain" for your AI Assistant.**
 
-[Features](#key-features) • [Installation](#installation) • [Usage](#usage) • [Architecture](#system-architecture) • [Tools](#available-mcp-tools)
+[Configuration](#configuration) • [Usage](#usage) • [Tools](#available-tools) • [Troubleshooting](#troubleshooting)
 
 </div>
 
 ---
 
-## 🚀 What is Nexus?
+## 🚀 Overview
 
-**Nexus** is a local, privacy-focused **Model Context Protocol (MCP)** server that gives your AI agents (like Claude Desktop, Cursor, etc.) **Long-Term Memory** and **RAG (Retrieval-Augmented Generation)** capabilities on your local files.
+**Nexus** is a local **Model Context Protocol (MCP)** server that gives your AI agents (like Claude Desktop, Cursor, etc.) **Long-Term Memory** and **RAG (Retrieval-Augmented Generation)** capabilities. 
 
-It solves the "amnesia" problem of LLMs by allowing them to:
-1.  **Search** your local documents/notes intelligently.
-2.  **Remember** facts, preferences, and project context between conversations.
-3.  **Learn** from your interactions and adapt over time.
-
----
-
-## ✨ Key Features
-
-### 🔍 Advanced RAG Engine
-*   **Hybrid Search**: Combines **Semantic Search** (Embeddings) with **Keyword Search** (BM25) for high recall.
-*   **Smart Reranking**: Uses **Cross-Encoders** to re-score results, ensuring the most relevant info is always top-1.
-*   **Auto-Ingestion**: Watches your folders and automatically indexes changes in real-time.
-*   **Privacy First**: All data runs locally. Embeddings and vector storage (Qdrant) are embedded.
-
-### 🧠 AI Memory Layer
-*   **Project Context**: Stores architecture decisions, tech stacks, and TODOs for your projects.
-*   **User Preferences**: Remembers your coding style (e.g., "User prefers Pytest over Unittest").
-*   **Fact Store**: Persistent storage for important details that shouldn't be lost.
-*   **Fact Store**: Persistent storage for important details that shouldn't be lost.
-
-### 🌐 Multi-MCP Orchestration
-**This is the "Killer Feature".** Since Nexus is an MCP server, it can work alongside **GitHub MCP**, **Notion MCP**, **Slack MCP**, etc. in your client (Claude/Cursor).
-
-*   **Ingest Anything**: Ask Claude to "Read the README from the GitHub MCP and save it to Nexus".
-*   **Centralized Knowledge**: Pull docs from Notion, code from GitHub, and chats from Slack into ONE searchable brain.
-*   **Client-Side Integration**: No need for Nexus to have API keys—it relies on your Client to fetch data and feed it to Nexus.
+It runs on your local machine, indexes your files, and allows your AI to:
+1.  **Recall** past conversations and decisions.
+2.  **Search** your local codebase and notes.
+3.  **Learn** your preferences over time.
 
 ---
 
-## 🏗️ System Architecture
+## ⚙️ Configuration
 
-Nexus uses a dual-layer architecture separating **Document Retrieval (RAG)** from **Cognitive Memory**.
-
-```mermaid
-graph TB
-    %% --- Styles ---
-    classDef client fill:#f9f9f9,stroke:#333,stroke-width:2px;
-    classDef orchestration fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,stroke-dasharray: 5 5;
-    classDef nexus fill:#fff3e0,stroke:#ef6c00,stroke-width:4px;
-    classDef memory fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
-    classDef rag fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    classDef storage fill:#eceff1,stroke:#455a64,stroke-width:2px;
-
-    %% --- External World ---
-    %% --- External World ---
-    Client(["🤖 AI Assistant<br/>Claude / Cursor / IDE"])
-    class Client client
-
-    subgraph Orchestration ["🌐 Orchestration Layer"]
-        Github[GitHub MCP]
-        Notion[Notion MCP]
-        Other[Other MCPs]
-    end
-    class Github,Notion,Other orchestration
-
-    %% --- Nexus Core ---
-    subgraph Nexus ["🔥 Nexus Server (Core)"]
-        API[🔌 MCP Interface Protocol]
-        class API nexus
-
-        subgraph Cognitive ["🧠 Cognitive Engine"]
-            MemManager[Memory Manager]
-            Context[Project Context]
-            Preferences[User Preferences]
-            class MemManager,Context,Preferences memory
-            MemManager --> Context
-            MemManager --> Preferences
-        end
-
-        subgraph Retrieval ["🔍 Retrieval Engine"]
-            Hybrid["Hybrid Search<br/>(Dense + Sparse)"]
-            Reranker["Cross-Encoder<br/>Reranker"]
-            class Hybrid,Reranker rag
-            Hybrid --> Reranker
-        end
-        
-        subgraph DataOps ["⚡ Data Operations"]
-            Ingest[Ingestion Pipeline]
-            Watcher[File Watcher]
-            class Ingest,Watcher rag
-        end
-    end
-
-    %% --- Storage Layer ---
-    subgraph Storage ["💾 Local Storage"]
-        VectorDB[("Qdrant<br/>Vectors")]
-        SQL[("SQLite<br/>Metadata")]
-        FS[("File System<br/>/memories")]
-        class VectorDB,SQL,FS storage
-    end
-
-    %% --- Connections ---
-    Client <==>| JSON-RPC | API
-    Client -.->|Fetch Data| Orchestration
-    Orchestration -->|ingest_content| API
-
-    %% Internal Flows
-    API -->|search_knowledge| Hybrid
-    API -->|remember / recall| MemManager
-    API -->|add_note| Ingest
-
-    %% Data Flows
-    Ingest -->|Embed| VectorDB
-    Ingest -->|Meta| SQL
-    MemManager -->|Persist| FS
-    Hybrid -->|Query| VectorDB
-    Hybrid -->|Filter| SQL
-    Watcher -.->|Change Event| Ingest
-
-    %% Context Flow
-    Reranker -->|Top-K Results| API
-    MemManager -->|Contextual Memories| API
-```
-
----
-
-## 🛡️ Citations & Grounding
-
-Nexus is designed to rely strictly on retrieved facts, eliminating "hallucinations" by providing **precise citations** for every claim.
-
-### How it works
-Every `search_knowledge` result includes:
-1.  **Source Path**: The exact file path (`/docs/api.md`).
-2.  **Relevance Score**: A 0-1 confidence score from the Cross-Encoder.
-3.  **Direct Quote**: The specific text chunk used.
-
-**Example Response:**
-> "According to **[api_guide.md]** (Score: 0.98), the authentication requires a Bearer token..."
-
----
-
-## 📊 Evaluation & Metrics (RAGAS)
-
-Nexus includes a built-in evaluation harness using **RAGAS** (Retrieval Augmented Generation Assessment) to ensure retrieval quality.
-
-| Metric | Purpose |
-|--------|---------|
-| **Context Precision** | proportion of relevant chunks in retrieved top-k |
-| **Context Recall** | ability to retrieve all necessary information |
-| **Relevance Score** | Cross-encoder semantic similarity (calculated in real-time) |
-
-### Running Benchmarks
-To run the evaluation suite against your knowledge base:
-
-```bash
-# Set your OpenAI key for the "Judge" LLM (optional)
-export OPENAI_API_KEY="sk-..."
-
-# Run the evaluation script
-python scripts/evaluate.py
-```
-
-*Output:*
-```text
-📊 Starting Nexus RAG Evaluation...
-📈 Mean Top-1 Relevance Score: 0.9245
-🏆 Context Precision: 0.88
-```
-
----
-
-## 📦 Installation
-
-### Prerequisites
-*   Python 3.11+
-*   `uv` (recommended) or `pip`
-
-### Quick Start
-
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/kaushikkumarkr/RAG-MCP.git
-    cd RAG-MCP
-    ```
-
-2.  **Install dependencies**
-    ```bash
-    # Using venv
-    python3.11 -m venv venv
-    source venv/bin/activate
-    pip install -e .
-    ```
-
-3.  **Initialize Nexus**
-    ```bash
-    nexus init
-    ```
-
----
-
-## 🛠️ Usage
-
-### CLI Commands
-
-Nexus comes with a powerful CLI to manage your knowledge base.
-
-```bash
-# Start the MCP server (for Claude)
-nexus serve
-
-# Add a directory to watch and index
-nexus add-source ~/Documents/obsidian-vault
-
-# Manual search from terminal
-nexus search "How do I implement JWT auth?"
-
-# Check system status
-nexus status
-```
-
-### Connect to Claude Desktop
-
-Add this to your `~/Library/Application Support/Claude/claude_desktop_config.json`:
+### 1. Claude Desktop App
+To use Nexus with Claude, add the following to your config file:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
@@ -245,54 +44,95 @@ Add this to your `~/Library/Application Support/Claude/claude_desktop_config.jso
 }
 ```
 
+### 2. Cursor / Windsurf / Other IDEs
+Go to **Settings > Features > MCP** and add a new server:
+- **Name**: `nexus`
+- **Type**: `stdio`
+- **Command**: `uv run nexus serve` (or path to python executable)
+
 ---
 
-## 🧰 Available MCP Tools
+## 💬 Usage Examples
 
-Nexus exposes **11 powerful tools** to your AI assistant:
+Once connected, you can talk to your AI naturally. Nexus will automatically trigger the right tools.
 
-| Tool | Category | Description |
+### 🧠 Memory (Long-Term Storage)
+> **User**: "Remember that for the 'Financial Dashboard' project, we depend on the `pandas` 2.0 library and use `pytest` for testing."
+>
+> **AI**: "Understood. I've saved that context for the Financial Dashboard project."
+> *(Tool used: `remember`)*
+
+---
+
+### 🔍 Retrieval (RAG)
+> **User**: "How do we handle authentication in this codebase?"
+>
+> **AI**: "According to `docs/auth_flow.md`, we use JWT tokens via Auth0..."
+> *(Tool used: `search_knowledge`)*
+
+---
+
+### ⚡ Context Injection
+> **User**: "I'm starting work on the backend API. Get me up to speed."
+>
+> **AI**: "Checking project context... Okay, for the backend API:
+> 1. We use FastAPI.
+> 2. The DB is Postgres.
+> 3. **Warning**: Migration scripts are in `/alembic`."
+> *(Tool used: `get_project_context`)*
+
+---
+
+## 🛠️ Available Tools
+
+| Tool | Description | Arguments |
 | :--- | :--- | :--- |
-| `search_knowledge` | 🔍 **Search** | Query the local knowledge base (RAG). |
-| `list_sources` | 🔍 **Search** | List all indexed files and directories. |
-| `get_stats` | 🔍 **Search** | View database stats (chunks, vectors). |
-| `remember` | 🧠 **Memory** | Store a fact, preference, or decision. |
-| `recall` | 🧠 **Memory** | Retrieve specific memories. |
-| `get_project_context` | 🧠 **Memory** | Get full context (stack, decisions) for a project. |
-| `get_user_preferences` | 🧠 **Memory** | Retrieve learned user preferences. |
-| `forget` | 🧠 **Memory** | Delete a specific memory. |
-| `add_note` | ⚡ **Ingest** | Create a markdown note instantly. |
-| `ingest_content` | ⚡ **Ingest** | Save content from **external MCP tools** (GitHub, Notion). |
-| `batch_ingest` | ⚡ **Ingest** | Bulk ingest multiple documents. |
+| `search_knowledge` | **Search** your local documents. | `query` (str), `limit` (int) |
+| `remember` | **Store** a fact or memory. | `content` (str), `project` (str), `tags` (list) |
+| `recall` | **Retrieve** memories. | `query` (str) |
+| `get_project_context` | Get **full overview** of a project. | `project` (str) |
+| `get_user_preferences` | Get learned **user habits**. | None |
+| `ingest_content` | **Save** content from other MCPs. | `content` (str), `source` (str) |
+| `add_note` | Create a markdown **note**. | `filename` (str), `content` (str) |
+| `list_sources` | List indexed **files**. | None |
 
 ---
 
-## 📈 Evaluation & Performance
+## 🛡️ Citations & Grounding
 
-Nexus is rigorously tested using **RAGAS** (Retrieval Augmented Generation Assessment) with MLX-LM as the judge.
-
-| Metric | Score | Description |
-| :--- | :--- | :--- |
-| **Hit Rate @ 5** | **100%** | Relevant document found in top 5 results. |
-| **MRR (Mean Reciprocal Rank)** | **0.958** | Relevant document is usually #1. |
-| **Faithfulness** | **High** | Answers are grounded in context. |
-
-*Evaluated on a custom 52-question dataset covering Python, ML, and Data Science topics.*
+Nexus citations are **precise**. Every answer includes:
+1.  **Source Path**: File path (`/docs/api.md`).
+2.  **Relevance**: Confidence score (0-1).
+3.  **Quote**: Exact text chunk used.
 
 ---
 
-## 🤝 Contributing
+## ❓ Troubleshooting
 
-Contributions are welcome!
+### Server not starting?
+Run the built-in status check to verify your database and config:
+```bash
+nexus status
+```
 
-1.  Fork the repo.
-2.  Create a feature branch (`git checkout -b feature/amazing-feature`).
-3.  Commit your changes (`git commit -m 'Add amazing feature'`).
-4.  Push to the branch (`git push origin feature/amazing-feature`).
-5.  Open a Pull Request.
+### "Tool not found" error?
+Ensure you have restarted your client (Claude/Cursor) after editing the config file.
+
+### How do I see what's happening?
+Nexus logs to stderr. In Claude Desktop, you can open the **Developer Console** to see the MCP logs in real-time.
 
 ---
 
-## 📄 License
+## 🏗️ Architecture
 
-Distributed under the MIT License. See `LICENSE` for more information.
+```mermaid
+graph TD
+    Client([🤖 AI Agent]) <==>|MCP| Nexus[🔥 Nexus Server]
+    
+    subgraph "Nexus Brain"
+        Nexus -->|RAG| VectorDB[(Qdrant)]
+        Nexus -->|Memory| SQLite[(Memories)]
+    end
+```
+
+**Built with:** Python 3.11 • Qdrant • Sentence-Transformers • RAGAS
